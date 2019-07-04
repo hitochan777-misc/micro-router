@@ -18,6 +18,7 @@ const methodFn = method => (givenPath, handler) => {
     if (params && req.method === method) {
       return handler(Object.assign(req, { params, query }), res);
     }
+    return null;
   };
 };
 
@@ -25,10 +26,14 @@ const findRoute = (funcs, namespace = '') => (() => {
   var _ref = _asyncToGenerator(function* (req, res) {
     for (const fn of funcs) {
       const result = yield fn(req, res, namespace);
-      if (result || res.headersSent) return result;
+      if (result === null) {
+        // Did not match with this handler
+        continue;
+      }
+      if (result || res.headersSent) {
+        return result;
+      }
     }
-
-    return null;
   });
 
   return function (_x, _x2) {
