@@ -18,16 +18,21 @@ const methodFn = method => (givenPath, handler) => {
     if (params && req.method === method) {
       return handler(Object.assign(req, { params, query }), res)
     }
+    return null
   }
 }
 
 const findRoute = (funcs, namespace = '') => async (req, res) => {
   for (const fn of funcs) {
     const result = await fn(req, res, namespace)
-    if (result || res.headersSent) return result
+    if (result === null) {
+      // Did not match with this handler
+      continue
+    }
+    if (result || res.headersSent) {
+      return result
+    }
   }
-
-  return null
 }
 
 exports.router = (...funcs) => findRoute(funcs)
